@@ -47,10 +47,10 @@ void lcd_send_nibble(int bits, eState mode) {
     gpioSetPin(LCD_E, high);
 
     // set data
-    gpioSetPin(LCD_DATA4, bits & 0x01 != 0 ? high : low);
-    gpioSetPin(LCD_DATA5, bits & 0x02 != 0 ? high : low);
-    gpioSetPin(LCD_DATA6, bits & 0x04 != 0 ? high : low);
-    gpioSetPin(LCD_DATA7, bits & 0x08 != 0 ? high : low);
+    gpioSetPin(LCD_DATA4, (bits & 0x01) != 0 ? high : low);
+    gpioSetPin(LCD_DATA5, (bits & 0x02) != 0 ? high : low);
+    gpioSetPin(LCD_DATA6, (bits & 0x04) != 0 ? high : low);
+    gpioSetPin(LCD_DATA7, (bits & 0x08) != 0 ? high : low);
 
     precise_sleep(0, E_PULSE_NANOS);
 
@@ -59,10 +59,10 @@ void lcd_send_nibble(int bits, eState mode) {
     precise_sleep(0, DATA_HOLD_NANOS);
 
     // clear data
-    gpioSetPin(LCD_DATA4, bits & 0x01 != 0 ? high : low);
-    gpioSetPin(LCD_DATA5, bits & 0x02 != 0 ? high : low);
-    gpioSetPin(LCD_DATA6, bits & 0x04 != 0 ? high : low);
-    gpioSetPin(LCD_DATA7, bits & 0x08 != 0 ? high : low);
+    gpioSetPin(LCD_DATA4, low);
+    gpioSetPin(LCD_DATA5, low);
+    gpioSetPin(LCD_DATA6, low);
+    gpioSetPin(LCD_DATA7, low);
 
     precise_sleep(0, E_PULSE_NANOS - DATA_HOLD_NANOS);
 }
