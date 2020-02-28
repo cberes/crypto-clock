@@ -16,7 +16,7 @@
 
 #define LCD_WIDTH 16 		// width in characters
 
-#define E_PULSE_NANOS 230
+#define E_PULSE_MICROS 100
 #define RS_SETUP_NANOS 40
 #define DATA_HOLD_NANOS 10
 
@@ -38,13 +38,19 @@ void precise_sleep(time_t seconds, long nanos) {
     }
 }
 
+void generate_clock(void) {
+    // according to LCD documentation, 100-us clock pulse is overkill
+    // but lower values seem not to work
+    gpioSetPin(LCD_E, high);
+    usleep(E_PULSE_MICROS);
+    gpioSetPin(LCD_E, low);
+    usleep(E_PULSE_MICROS);
+}
+
 void lcd_send_nibble(int bits, eState mode) {
     // set mode
     gpioSetPin(LCD_RS, mode);
-    precise_sleep(0, RS_SETUP_NANOS);
-
-    // high clock
-    gpioSetPin(LCD_E, high);
+    precise_sleep(0, RS_SETUP_NANOS); // TODO is this necessary?
 
     // set data
     gpioSetPin(LCD_DATA4, (bits & 0x01) != 0 ? high : low);
@@ -52,19 +58,7 @@ void lcd_send_nibble(int bits, eState mode) {
     gpioSetPin(LCD_DATA6, (bits & 0x04) != 0 ? high : low);
     gpioSetPin(LCD_DATA7, (bits & 0x08) != 0 ? high : low);
 
-    precise_sleep(0, E_PULSE_NANOS);
-
-    // low clock + hold data briefly
-    gpioSetPin(LCD_E, low);
-    precise_sleep(0, DATA_HOLD_NANOS);
-
-    // clear data
-    gpioSetPin(LCD_DATA4, low);
-    gpioSetPin(LCD_DATA5, low);
-    gpioSetPin(LCD_DATA6, low);
-    gpioSetPin(LCD_DATA7, low);
-
-    precise_sleep(0, E_PULSE_NANOS - DATA_HOLD_NANOS);
+    generate_clock();
 }
 
 void lcd_send_byte(int bits, eState mode) {
@@ -73,15 +67,20 @@ void lcd_send_byte(int bits, eState mode) {
 }
 
 void select_line(int line) {
-	lcd_send_byte(line == 0 ? 0x80 : 0xC0, commandMode());
+    lcd_send_byte(line == 0 ? 0x80 : 0xC0, commandMode());
 }
 
-void lcd_message(char[] message) {
+void lcd_send_string(char* message, int width, char padWith) {
     const int length = strlen(message);
     int i;
-    for (i = 0; i < LCD_WIDTH; ++i) {
-        lcd_send_byte(i < length ? message[i] : ' ', characterMode());
+    for (i = 0; i < width; ++i) {
+        lcd_send_byte(i < length ? message[i] : padWith, characterMode());
     }
+}
+
+void lcd_message(int line, char* message) {
+    select_line(line);
+    lcd_send_string(message, LCD_WIDTH, ' ');
 }
 
 void lcd_init(void) {
@@ -96,6 +95,19 @@ void lcd_init(void) {
     lcd_send_byte(0x08, mode); // display off
     lcd_send_byte(0x01, mode); // display clear
     lcd_send_byte(0x06, mode); // entry mode set
+    lcd_send_byte(0x0C, mode); // display on
+}
+
+void gpio_init(void) {
+    gpioSetFunction(LCD_RS, output);
+    gpioSetFunction(LCD_E, output);
+    gpioSetFunction(LCD_DATA4, output);
+    gpioSetFunction(LCD_DATA5, output);
+    gpioSetFunction(LCD_DATA6, output);
+    gpioSetFunction(LCD_DATA7, output);
+
+    gpioSetPin(LCD_RS, low);
+    gpioSetPin(LCD_E, low);
 }
 
 int main(void) {
@@ -104,19 +116,12 @@ int main(void) {
         return 1;
     }
 
-    gpioSetFunction(LCD_RS, output);
-    gpioSetFunction(LCD_E, output);
-    gpioSetFunction(LCD_DATA4, output);
-    gpioSetFunction(LCD_DATA5, output);
-    gpioSetFunction(LCD_DATA6, output);
-    gpioSetFunction(LCD_DATA7, output);
+    gpio_init();
 
-	lcd_init();
+    lcd_init();
 
-	select_line(0);
-	lcd_message("This is line 1");
-	select_line(1);
-	lcd_message("Wow, now line 2.");
+    lcd_message(0, "This is line 1");
+    lcd_message(1, "Wow, now line 2.");
 
     gpioCleanup();
     return 0;

@@ -1,9 +1,8 @@
 CC=gcc
-CFLAGS=-I.
-DEPS=
+CFLAGS=-I. -I../RaspberryPi-GPIO/include
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+main:
+	$(CC) $(CFLAGS) -o main src/main.c ../RaspberryPi-GPIO/library/*.a
 
-main: main.o
-	$(CC) -o main main.o
+clean:
+	rm main
