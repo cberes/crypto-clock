@@ -5,6 +5,7 @@
 #include <time.h>
 #include <curl/curl.h>
 #include <jansson.h>
+#include "price_data.h"
 
 struct MemoryStruct {
     char *memory;

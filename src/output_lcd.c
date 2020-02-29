@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include "rpiGpio.h"
+#include "output.h"
 
 #define LCD_RS 4
 #define LCD_E 17
@@ -126,7 +127,7 @@ void gpio_init(void) {
 
 int output_init(void) {
     if (gpioSetup() != OK) {
-        dbgPrint(DBG_INFO, "gpioSetup failed. Exiting");
+        fprintf(stderr, "gpioSetup failed\n");
         return 1;
     }
 
