@@ -13,7 +13,7 @@
 #define LCD_DATA7 24
 
 #define LCD_WIDTH 16 		// width in characters
-#define E_PULSE_MICROS 100
+#define E_PULSE_MICROS 70
 #define RS_SETUP_NANOS 40
 
 eState commandMode() {
@@ -35,18 +35,18 @@ void precise_sleep(time_t seconds, long nanos) {
 }
 
 void generate_clock(void) {
-    // according to LCD documentation, 100-us clock pulse is overkill
-    // but lower values seem not to work
+    // according to LCD documentation, such a long clock pulse is overkill
+    // but anything less than ~70 us doesn't work
     gpioSetPin(LCD_E, high);
-    usleep(E_PULSE_MICROS);
+    precise_sleep(0, E_PULSE_MICROS * 1000);
     gpioSetPin(LCD_E, low);
-    usleep(E_PULSE_MICROS);
+    precise_sleep(0, E_PULSE_MICROS * 1000);
 }
 
 void lcd_send_nibble(int bits, eState mode) {
     // set mode
     gpioSetPin(LCD_RS, mode);
-    precise_sleep(0, RS_SETUP_NANOS); // TODO is this necessary?
+    precise_sleep(0, RS_SETUP_NANOS);
 
     // set data
     gpioSetPin(LCD_DATA4, (bits & 0x01) != 0 ? high : low);
