@@ -107,6 +107,7 @@ void output_line(int line, char *message, int align) {
 
 void lcd_init(void) {
     eState mode = commandMode();
+    // 4-bit mode initialization
     lcd_send_byte(0x03, mode);
     sleep_millis(5);
     lcd_send_byte(0x03, mode);
@@ -114,16 +115,16 @@ void lcd_init(void) {
     lcd_send_byte(0x03, mode);
     sleep_micros(100);
     lcd_send_byte(0x02, mode);
-    sleep_micros(50);
+    sleep_micros(100);
+    // device configuration
     lcd_send_byte(0x28, mode); // use 4-bit mode, 2 lines and 5x8 mode
     sleep_micros(50);
-    lcd_send_byte(0x08, mode); // display off
+    lcd_send_byte(0x0C, mode); // display on, cursor off
     sleep_micros(50);
     lcd_send_byte(0x01, mode); // display clear
+    sleep_millis(2);
+    lcd_send_byte(0x06, mode); // entry mode set: move cursor to right, no shifting
     sleep_micros(50);
-    lcd_send_byte(0x06, mode); // entry mode set
-    sleep_micros(50);
-    // lcd_send_byte(0x0C, mode); // display on TODO need this?
 }
 
 void gpio_init(void) {
