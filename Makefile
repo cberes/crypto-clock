@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-Wall -Werror -I.
 
 all: output_lcd.o price_data.o
 	$(CC) $(CFLAGS) -o main src/main.c output_lcd.o price_data.o ../RaspberryPi-GPIO/library/*.a -lcurl -ljansson
