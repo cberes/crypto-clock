@@ -6,16 +6,19 @@
 #include "rpiGpio.h"
 #include "output.h"
 
-#define LCD_RS 4
-#define LCD_E 17
-#define LCD_DATA4 18
-#define LCD_DATA5 22
-#define LCD_DATA6 23
-#define LCD_DATA7 24
+#define LCD_RS 4        // pin  7
+#define LCD_E 17        // pin 11
+#define LCD_DATA4 18    // pin 12
+#define LCD_DATA5 22    // pin 15
+#define LCD_DATA6 23    // pin 16
+#define LCD_DATA7 24    // pin 18
 
-#define LCD_WIDTH 16 		// width in characters
-#define E_PULSE_MICROS 100
-#define RS_SETUP_NANOS 40
+#define LCD_WIDTH 16            // width in characters
+#define RS_SETUP_NANOS 50       // minimum time between setup of RS and rising clock edge
+#define DATA_SETUP_NANOS 100    // minimum time between setup of data and falling clock edge
+#define DATA_HOLD_NANOS 20      // minimum time to hold date after falling clock edge
+#define CLOCK_LEVEL_NANOS 250   // minimum total time for high or low clock pulse
+#define EXECUTION_MICROS 50     // most commands require 38 us to execute; round up a litte
 
 static eState commandMode() {
     return low;
@@ -47,22 +50,28 @@ void sleep_millis(long millis) {
     precise_sleep(0, millis * 1000 * 1000);
 }
 
-static void generate_clock(void) {
-    sleep_micros(1);
-    gpioSetPin(LCD_E, high);
-    sleep_micros(1);
-    gpioSetPin(LCD_E, low);
-    sleep_micros(E_PULSE_MICROS);
-}
-
 static void lcd_send_nibble(int bits, eState mode) {
     gpioSetPin(LCD_RS, mode);
+
+    sleep_nanos(RS_SETUP_NANOS);
+    gpioSetPin(LCD_E, high);
+
     gpioSetPin(LCD_DATA4, (bits & 0x01) != 0 ? high : low);
     gpioSetPin(LCD_DATA5, (bits & 0x02) != 0 ? high : low);
     gpioSetPin(LCD_DATA6, (bits & 0x04) != 0 ? high : low);
     gpioSetPin(LCD_DATA7, (bits & 0x08) != 0 ? high : low);
 
-    generate_clock();
+    sleep_nanos(DATA_SETUP_NANOS);
+    sleep_nanos(CLOCK_LEVEL_NANOS - DATA_SETUP_NANOS);
+    gpioSetPin(LCD_E, low);
+
+    sleep_nanos(DATA_HOLD_NANOS);
+    gpioSetPin(LCD_DATA4, low);
+    gpioSetPin(LCD_DATA5, low);
+    gpioSetPin(LCD_DATA6, low);
+    gpioSetPin(LCD_DATA7, low);
+
+    sleep_nanos(CLOCK_LEVEL_NANOS - DATA_HOLD_NANOS);
 }
 
 static void lcd_send_byte(int bits, eState mode) {
@@ -72,6 +81,7 @@ static void lcd_send_byte(int bits, eState mode) {
 
 static void select_line(int line) {
     lcd_send_byte(line == 0 ? 0x80 : 0xC0, commandMode());
+    sleep_micros(EXECUTION_MICROS);
 }
 
 static char char_at_index(char *message, int i, int length, char padWith, int align) {
@@ -97,6 +107,7 @@ void lcd_send_string(char *message, char padWith, int align) {
     int i;
     for (i = 0; i < LCD_WIDTH; ++i) {
         lcd_send_byte(char_at_index(message, i, length, padWith, align), characterMode());
+        sleep_micros(EXECUTION_MICROS);
     }
 }
 
@@ -118,13 +129,13 @@ void lcd_init(void) {
     sleep_micros(100);
     // device configuration
     lcd_send_byte(0x28, mode); // use 4-bit mode, 2 lines and 5x8 mode
-    sleep_micros(50);
+    sleep_micros(EXECUTION_MICROS);
     lcd_send_byte(0x0C, mode); // display on, cursor off
-    sleep_micros(50);
+    sleep_micros(EXECUTION_MICROS);
     lcd_send_byte(0x01, mode); // display clear
     sleep_millis(2);
     lcd_send_byte(0x06, mode); // entry mode set: move cursor to right, no shifting
-    sleep_micros(50);
+    sleep_micros(EXECUTION_MICROS);
 }
 
 void gpio_init(void) {
