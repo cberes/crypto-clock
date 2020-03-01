@@ -52,7 +52,7 @@ static void generate_clock(void) {
     gpioSetPin(LCD_E, high);
     sleep_micros(1);
     gpioSetPin(LCD_E, low);
-    sleep_micros(0, E_PULSE_MICROS);
+    sleep_micros(E_PULSE_MICROS);
 }
 
 static void lcd_send_nibble(int bits, eState mode) {
