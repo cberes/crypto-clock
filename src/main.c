@@ -7,9 +7,8 @@
 #include "price_data.h"
 #include "output.h"
 
-#define PRICE_DELAY 50
+#define PRICE_ERROR_DELAY 120
 #define OUTPUT_DELAY 15
-#define PRICE_COUNT 1
 
 void sigint_handler(int sig_num)  {
     printf("Exiting...\n"); 
@@ -23,8 +22,9 @@ void sigint_handler(int sig_num)  {
 
 int main(void) {
     int return_code = 0;
-    char *price_ids[] = {"Bitcoin"};
-    struct price_element prices[PRICE_COUNT];
+    int price_count = 7;
+    char *price_ids[] = {"bitcoin","ethereum","litecoin","bitcoin-cash","zcash","stellar","ripple"};
+    struct price_element prices[price_count];
     int i;
 
     return_code = output_init();
@@ -37,16 +37,16 @@ int main(void) {
     signal(SIGINT, sigint_handler); 
 
     while (1) {
-        return_code = prices_for(price_ids, prices, PRICE_COUNT);
+        return_code = prices_for(price_ids, prices, price_count);
 
         if (!return_code) {
-            for (i = 0; i < PRICE_COUNT; ++i) {
+            for (i = 0; i < price_count; ++i) {
                 output_line(0, prices[i].name, OUTPUT_LEFT_ALIGN);
                 output_line(1, prices[i].price, OUTPUT_RIGHT_ALIGN);
                 sleep(OUTPUT_DELAY);
             }
+        } else {
+            sleep(PRICE_ERROR_DELAY);
         }
-
-        sleep(PRICE_DELAY - OUTPUT_DELAY * PRICE_COUNT); // TODO what if this is negative?
     }
 }
