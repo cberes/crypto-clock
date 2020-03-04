@@ -24,6 +24,7 @@ int main(void) {
     int return_code = 0;
     int price_count = 7;
     char *price_ids[] = {"bitcoin","ethereum","litecoin","bitcoin-cash","zcash","stellar","ripple"};
+    char *api_key = getenv("CRYPTO_API_KEY");
     struct price_element prices[price_count];
     int i;
 
@@ -37,7 +38,7 @@ int main(void) {
     signal(SIGINT, sigint_handler); 
 
     while (1) {
-        return_code = prices_for(price_ids, prices, price_count);
+        return_code = prices_for(price_ids, api_key, prices, price_count);
 
         if (!return_code) {
             for (i = 0; i < price_count; ++i) {

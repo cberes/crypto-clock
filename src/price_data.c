@@ -64,10 +64,9 @@ static char *build_request(char *result, char **ids, int count) {
     return result;
 }
 
-int prices_for(char **ids, price_element *prices, int length) {
+int prices_for(char **ids, char *api_key, price_element *prices, int length) {
     int return_code = 0;
     const char *url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest";
-    const char *api_key = "TODO";
     char api_key_header[56];
     char request_data[REQUEST_MAX_LENGTH];
     char url_with_data[REQUEST_MAX_LENGTH + strlen(url) + 1]; // 1 byte for '?'
