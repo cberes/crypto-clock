@@ -19,7 +19,7 @@ you will need to provide your API key via an environment variable. For example, 
 
 ### LCD
 
-Connect your LCD pins to your Raspberry Pi. The :CD's RW pin must be tied to ground.
+Connect your LCD pins to your Raspberry Pi. The LCD's RW pin must be tied to ground.
 
 | LCD    | GPIO | Model 1 B pin |
 | ------ | ---: | ------------: |
