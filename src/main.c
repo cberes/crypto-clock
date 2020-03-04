@@ -8,6 +8,7 @@
 #include "output.h"
 
 #define PRICE_ERROR_DELAY 120
+#define MIN_PRICE_DELAY 60
 #define OUTPUT_DELAY 15
 
 void sigint_handler(int sig_num)  {
@@ -20,10 +21,23 @@ void sigint_handler(int sig_num)  {
     exit(0);
 }
 
-int main(void) {
+static long sleep_time(int price_count) {
+    if (price_count * OUTPUT_DELAY < MIN_PRICE_DELAY) {
+        return MIN_PRICE_DELAY / price_count;
+    } else {
+        return OUTPUT_DELAY;
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Provide cryptocurrency slugs via arguments.\n");
+        return 100;
+    }
+
     int return_code = 0;
-    int price_count = 7;
-    char *price_ids[] = {"bitcoin","ethereum","litecoin","bitcoin-cash","zcash","stellar","ripple"};
+    int price_count = argc - 1;
+    char **price_ids = argv + 1;
     char *api_key = getenv("CRYPTO_API_KEY");
     struct price_element prices[price_count];
     int i;
@@ -44,7 +58,7 @@ int main(void) {
             for (i = 0; i < price_count; ++i) {
                 output_line(0, prices[i].name, OUTPUT_LEFT_ALIGN);
                 output_line(1, prices[i].price, OUTPUT_RIGHT_ALIGN);
-                sleep(OUTPUT_DELAY);
+                sleep(sleep_time(price_count));
             }
         } else {
             sleep(PRICE_ERROR_DELAY);

@@ -23,9 +23,9 @@ In the root project directory, run
 
     make
 
-and then
+and then run `main` with the cryptocurrency slugs of your choice
 
-    sudo ./main
+    sudo ./main bitcoin ethereum litecoin
 
 ### Desktop
 
@@ -33,6 +33,6 @@ In the root project directory, run
 
     make desktop
 
-and then
+and then run `main` with the cryptocurrency slugs of your choice
 
-    ./main
+    ./main bitcoin ethereum litecoin
