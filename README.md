@@ -2,6 +2,8 @@
 
 Gets crypto prices and outputs them to a 16x2 LCD display using a Raspberry Pi.
 
+![See crypto-clock in action](crypto-clock.png)
+
 ## Dependencies
 
 - [libcurl](https://curl.haxx.se/libcurl/)
